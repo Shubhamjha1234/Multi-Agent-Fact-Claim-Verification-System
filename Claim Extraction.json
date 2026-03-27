@@ -1,0 +1,151 @@
+{
+  "name": "Claim Extraction",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a claim extraction agent.\n\nExtract factual claims from the user's input.\n\nRules:\n- Each claim must contain one fact\n- Split compound sentences\n- Ignore opinions\n- Remove duplicates\n\nReturn ONLY valid JSON.\n\nOutput format example:\n\n{{\n  \"claims\": [\n    \"claim text\"\n  ]\n}}"
+        }
+      },
+      "id": "eced9066-4c97-48a6-a8e2-c7b7abc2bedd",
+      "name": "Extract Claims",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        256,
+        304
+      ],
+      "id": "bcac8479-5075-4974-938a-87b7d0a7b04a",
+      "name": "When chat message received",
+      "webhookId": "cf1e372b-2647-440d-bcde-8f10df357f93"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"claims\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\"claims\"],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        528
+      ],
+      "id": "4fe48bf8-a678-4ae7-9316-1f4c13a527b4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        880,
+        736
+      ],
+      "id": "17395714-b87d-4d27-aa88-ef8ea408dd29",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ybEfP5taQmRXpytb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        560
+      ],
+      "id": "de42dd7d-7411-42ae-b75c-9dcf23d3b432",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ybEfP5taQmRXpytb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Extract Claims",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract Claims",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract Claims",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b6d6a39f-b613-42ed-8336-1c1ea878c8d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3fcdbd299af262543f31f0ff918e426c94624467e19541c8172a65e4cbd165a2"
+  },
+  "id": "mBLsxvUeHXp6XMEU",
+  "tags": []
+}
