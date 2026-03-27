@@ -1,0 +1,523 @@
+{
+  "name": "Multi-agent  Fact checking system",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        -208
+      ],
+      "id": "c5f28a2b-6346-4b16-93ff-c07c6b128643",
+      "name": "When chat message received",
+      "webhookId": "ebdb1971-94e5-435b-ad46-e9ebe6a8e771"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.input }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role:\n\nYou are a fact-checking research agent responsible for verifying factual claims using reliable evidence.\n\nYou must research information, analyze sources, and determine whether claims are True, False, Partially True, or Unverifiable.\n\nYou perform both research and verification.\n\n--------------------------------------------------\n\nTask:\n\nYou have three AI agents:\n\n1. Google Agent\n   - Use this to search general web information\n   - Retrieve reliable sources such as news, government, academic, or official websites\n\n2. Social Media Agent\n   - Use this to gather public statements or announcements\n   - Use this when claims involve public figures or events\n\n3. Company Research Agent\n   - Use this to gather structured company information\n   - Use this when claims involve companies or organizations\n\n--------------------------------------------------\n\nVerification Process:\n\nFor each claim:\n\n1. Understand the claim\n2. Identify key facts to verify\n3. Use the appropriate agent to gather evidence\n4. Compare information from multiple sources\n5. Determine the verdict\n6. Assign a confidence score\n7. Return the result\n\n--------------------------------------------------\n\nVerdict Rules:\n\nReturn only one:\n\nTrue\nFalse\nPartially True\nUnverifiable\n\n--------------------------------------------------\n\nConfidence Score:\n\nReturn a number from 0 to 100 based on:\n\n- number of sources\n- source reliability\n- agreement between sources\n- clarity of evidence\n\n--------------------------------------------------\n\nImportant Rules:\n\n- Do not guess\n- Do not fabricate sources\n- Use evidence only\n- If evidence is insufficient, return \"Unverifiable\"\n- Always include sources\n\n--------------------------------------------------\n\nOutput Format:\n\nReturn structured JSON.\n\nExample:\n\n{\n  \"claim\": \"...\",\n  \"verdict\": \"True\",\n  \"confidence\": 92,\n  \"reasoning\": \"...\",\n  \"sources\": [\n    {\n      \"title\": \"...\",\n      \"url\": \"...\",\n      \"snippet\": \"...\"\n    }\n  ]\n}",
+          "maxIterations": 2,
+          "batching": {
+            "batchSize": 1
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        -160
+      ],
+      "id": "3c8eeeb0-70e2-485f-a8ce-643d2020f57d",
+      "name": "Research Agent",
+      "retryOnFail": true,
+      "executeOnce": false,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        16,
+        352
+      ],
+      "id": "c87e8120-2245-49ae-a02b-c46dc4fbd542",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ybEfP5taQmRXpytb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        784
+      ],
+      "id": "4efffeae-b267-44c4-9b6d-be9385e5a452",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tYmuoEN8ia4tPGfM",
+          "name": "Google Gemini(PaLM) Api account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {
+          "search_depth": "basic",
+          "max_results": 1
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        752
+      ],
+      "id": "4a763d68-73dc-4b4a-8f24-b33087520a7b",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "NWezU7jSWpbLHTbe",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -224,
+        752
+      ],
+      "id": "cdb6e948-27f4-4a78-a358-35f4bb8b7a2f",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        96,
+        752
+      ],
+      "id": "5f0ce07d-5030-4b6b-9efb-f28dc822bbc3",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ybEfP5taQmRXpytb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "A tool to search Instagram Profiles.\nSimply Input the Instagram Profile name.",
+        "workflowId": {
+          "__rl": true,
+          "value": "L6cnNeIju0ROvC3e",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/L6cnNeIju0ROvC3e",
+          "cachedResultName": "Instagram Search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        752
+      ],
+      "id": "9389631c-14af-43bb-bfc2-273b8a59a165",
+      "name": "Instagram Search"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "m0hTPR3uwyZetDEz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/m0hTPR3uwyZetDEz",
+          "cachedResultName": "Linkedin Search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        752
+      ],
+      "id": "2a2c7f2d-ebaa-416e-9ee8-1025b5ae8951",
+      "name": "Linkedin search"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "TrBt4hwvZAMThK1E",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/TrBt4hwvZAMThK1E",
+          "cachedResultName": "X profile"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        752
+      ],
+      "id": "f5590adf-a2e1-4e42-973e-80a2a1c98d88",
+      "name": "X profile"
+    },
+    {
+      "parameters": {
+        "toolDescription": "=",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "##Role\nYou are a company verification agent responsible for researching and validating factual claims about companies.\n\n##Task\nYou will be given a company name or a statement about a company that needs to be verified.\n\nYour job is to gather reliable company data that can be used to confirm or reject the claim.\n\nYou have one tool: a Company Research / Enrichment tool that allows you to retrieve structured company information.\n\nUse the tools to:\n\n1. Identify the correct company\n2. Retrieve official company information\n3. Compare the retrieved data with the claim\n4. Provide evidence that supports or contradicts the claim\n\nFocus on verifying facts such as:\n\n- CEO name\n- Headquarters location\n- Founding year\n- Company size\n- Revenue\n- Industry\n- Ownership\n- Products or services\n\nAlways:\n\n- Use reliable sources\n- Return factual information only\n- Avoid assumptions\n- Provide accurate company data\n\nIf the information is unavailable, clearly state that the claim cannot be verified."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        912,
+        416
+      ],
+      "id": "4643aaed-0e6d-4030-bf2e-7d5114628426",
+      "name": "Company Research Agent"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "##Role\nYou are a research agent that can search social media platforms to gather factual statements and evidence related to people, companies, or events.\n\n##Task\nYou will be given a claim, person, company, or topic that needs to be verified using social media information.\n\nYour job is to find relevant public statements, announcements, or profile information from social media that can help confirm or contradict the claim.\n\nYou have three tools that allow you to do a few things:\n\n1. Instagram search  \n   Simply input an Instagram profile handle or keyword to this tool and get back profile details, posts, or public information.\n\n2. LinkedIn search  \n   Input a LinkedIn URL or company/person name and get back professional profile or company details.\n\n3. X (Twitter) profile search  \n   Input an X profile handle or keyword and get back public profile details, posts, or statements.\n\nUse the tools to:\n\n1. Identify the correct social media profile or account\n2. Retrieve public statements or profile information\n3. Collect evidence related to the claim\n4. Look for announcements, job titles, company updates, or public communications\n5. Return relevant factual information\n\nYou may only need to use one tool or you may need to use all three, depending on the task.\n\nIf a profile cannot be found, return a clear message indicating that no reliable social media data is available.\n\nAlways prioritize:\n\n- Verified accounts\n- Official company profiles\n- Public statements\n- Recent and relevant information\n\nDo not:\n\n- Guess information\n- Assume facts\n- Fabricate social media data\n- Return opinions\n\nReturn only factual information retrieved from the tools."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        256,
+        512
+      ],
+      "id": "66d483dc-d002-464d-86bd-956d81f47360",
+      "name": "Social Media Agent"
+    },
+    {
+      "parameters": {
+        "authentication": "bearerAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        736
+      ],
+      "id": "c13e887c-c3d1-4f63-8f42-365384303f43",
+      "name": "MCP Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SaJSwFDAH1fQEnsz",
+          "name": "Explorium"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        896,
+        720
+      ],
+      "id": "fdd4c6b0-b258-412a-aed7-dac5d3379987",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ybEfP5taQmRXpytb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.body.input }}",
+        "options": {
+          "systemMessage": "# Role\n\nYou are a Research and Fact-Checking Agent that can search the internet, analyze information, and verify claims using available tools.\n\nYou use the Gemini chat model for reasoning and response generation.\n\n# Task\n\nYou have the following tools available:\n\n1. Tavily\n\n* Use this tool to search the internet and retrieve relevant information.\n* Always use this tool when external data or verification is required.\n* Limit searches to a maximum of **3 sources per query**.\n* Prefer reliable, recent, and high-authority sources.\n* Avoid retrieving unnecessary content, images, or long articles.\n\n2. Think\n\n* Use this tool to analyze, reason, and consolidate information before producing the final answer.\n* Summarize findings concisely before generating the final response.\n* Focus only on the most relevant facts needed to verify the claim.\n\nYou may use one tool or multiple tools depending on the complexity of the task.\n\n# Workflow\n\nStep 1 — Understand the query\nRead and interpret the user's request clearly.\n\nStep 2 — Search\nUse Tavily to retrieve relevant information.\n\n* Retrieve **no more than 3 results**.\n* Prefer summaries over full content.\n* Stop searching once sufficient evidence is found.\n\nStep 3 — Analyze\nUse Think to evaluate and consolidate the findings.\n\n* Extract only key facts.\n* Remove redundant information.\n* Keep reasoning concise.\n\nStep 4 — Verify\nCheck consistency across sources.\n\n* Use cross-verification from at least 2 reliable sources when possible.\n* If evidence is insufficient or conflicting, mark the claim as \"Unverified\".\n\nStep 5 — Respond\nProvide a clear, factual answer using the format below.\n\n# Rules\n\n* Do not hallucinate information.\n* Always rely on tool outputs when verifying claims.\n* Prefer reliable and recent sources.\n* Limit total sources to **maximum 3**.\n* Keep explanations concise (2–4 sentences).\n* If information cannot be verified, say \"Unverified\".\n* Avoid long responses and unnecessary details.\n* Minimize token usage.\n\n# Output Format\n\nClaim: <statement being checked>\n\nVerdict:\nTrue / False / Partially True / Unverified\n\nExplanation:\nShort reasoning based on evidence\n\nSources:\n\n* Source 1\n* Source 2\n* Source 3 (if needed)\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -480,
+        544
+      ],
+      "id": "5b8a3d5b-6e0d-48ba-9322-9eac2ab56f6e",
+      "name": "Google Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fact check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        32
+      ],
+      "id": "07bbbdf6-bc1c-4a9a-88fb-81d864c906f5",
+      "name": "Webhook",
+      "webhookId": "b82ddd15-969f-4555-a925-ab4584974982"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"result\": $json.output } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        576,
+        -160
+      ],
+      "id": "e61697f3-f3f5-4fd7-85bc-8164cc0868ec",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Google Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Google Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Google Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Social Media Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Social Media Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Linkedin search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Social Media Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X profile": {
+      "ai_tool": [
+        [
+          {
+            "node": "Social Media Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Research Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Social Media Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "Company Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Company Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9a7c7fbd-c1b4-4057-98a8-08ef62795ec2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3fcdbd299af262543f31f0ff918e426c94624467e19541c8172a65e4cbd165a2"
+  },
+  "id": "PGJGaxHVvjVmvAVS",
+  "tags": []
+}
